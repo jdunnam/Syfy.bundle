@@ -13,12 +13,12 @@ def MetadataObjectForURL(url):
 
 	title = smil.xpath("/a:smil/a:body/a:seq/a:switch[1]/a:ref/@abstract", namespaces=NAMESPACES)[0]
 	summary = smil.xpath("/a:smil/a:body/a:seq/a:switch[1]/a:ref/@abstract", namespaces=NAMESPACES)[0]
-	duration = int(float(smil.xpath("/a:smil/a:body/a:seq/a:switch[1]/a:ref/@dur", namespaces=NAMESPACES)[0].split('ms')[0])*1000)
+	#duration = int(float(smil.xpath("/a:smil/a:body/a:seq/a:switch[1]/a:ref/@dur", namespaces=NAMESPACES)[0].split('ms')[0])*1000)
 	
 	return EpisodeObject(
 		title = title,
-		summary = summary,
-		duration = duration
+		summary = summary
+		#duration = duration
 	)
 
 
