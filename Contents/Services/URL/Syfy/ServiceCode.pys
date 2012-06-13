@@ -1,0 +1,112 @@
+NAMESPACES = {"a":"http://www.w3.org/2005/SMIL21/Language"}
+SMIL_URL = "http://feed.theplatform.com/f/hQNl-B/2g1gkJT0urp6/?&form=json&fields=guid,title,description,:subtitle,content,thumbnails,categories,:fullEpisode,:disallowSharing%20&fileFields=url,duration,width,height,contentType,fileSize,format&byGuid=%s"
+RES_MAP = ['360', '720']
+
+#########################################################################################
+def NormalizeURL(url):
+	return url
+
+
+#########################################################################################
+def MetadataObjectForURL(url):
+	smil = GetSMIL(url)
+
+	title = smil.xpath("/a:smil/a:body/a:seq/a:switch[1]/a:ref/@abstract", namespaces=NAMESPACES)[0]
+	summary = smil.xpath("/a:smil/a:body/a:seq/a:switch[1]/a:ref/@abstract", namespaces=NAMESPACES)[0]
+	#duration = int(float(smil.xpath("/a:smil/a:body/a:seq/a:switch[1]/a:ref/@dur", namespaces=NAMESPACES)[0].split('ms')[0])*1000)
+	
+	return EpisodeObject(
+		title = title,
+		summary = summary
+		#duration = duration
+	)
+
+
+#########################################################################################
+def MediaObjectsForURL(url):
+	return [
+		MediaObject(
+			container = Container.MP4,
+			video_codec = VideoCodec.H264,
+			audio_codec = AudioCodec.AAC,
+			optimized_for_streaming = True,
+			video_resolution = "720",
+			audio_channels = 2,
+			parts = [PartObject(key=Callback(PlayVideo, url=url))]
+		),
+# 		MediaObject(
+# 			container = Container.MP4,
+# 			video_codec = VideoCodec.H264,
+# 			audio_codec = AudioCodec.AAC,
+# 			optimized_for_streaming = True,
+# 			video_resolution = "504",
+# 			audio_channels = 2,
+# 			parts = [PartObject(key=Callback(PlayVideo, url=url, res="504"))]
+# 		),
+# 		MediaObject(
+# 			container = Container.MP4,
+# 			video_codec = VideoCodec.H264,
+# 			audio_codec = AudioCodec.AAC,
+# 			optimized_for_streaming = True,
+# 			video_resolution = "360",
+# 			audio_channels = 2,
+# 			parts = [PartObject(key=Callback(PlayVideo, url=url, res="360"))]
+# 		)
+	]
+
+####################################################################################################
+# def PlayVideo(url, res):
+# 	
+# 	res_index = RES_MAP.index(res)
+# 
+# 	smil = GetSMIL(url)
+# 
+# 	video_list = smil.xpath('.//a:video[contains(@src, "http://")]', namespaces=NAMESPACES)
+# 	while res_index > -1:
+# 		for video in video_list:
+# 			if video.get('height') == RES_MAP[res_index]:
+# 				video_url = video.get('src')
+# 				res_index = -1
+# 				break
+# 			else:
+# 				res_index = res_index - 1
+# 					
+# 
+# 	return Redirect(video_url)
+
+#########################################################################################
+def GetSMIL(url):
+	guid = url.split(':')[2]
+	#smil = XML.ElementFromURL(SMIL_URL % guid)
+	infourl = "http://feed.theplatform.com/f/hQNl-B/2g1gkJT0urp6/?&form=json&fields=guid,title,description,:subtitle,content,thumbnails,categories,:fullEpisode,:disallowSharing%20&fileFields=url,duration,width,height,contentType,fileSize,format&byGuid="+guid
+	
+	data = JSON.ObjectFromURL(infourl)
+	
+	for item in data['entries']:
+		for v in item['media$content']:
+			#if v['plfile$format']=="MPEG4" and v['plfile$height']==720:
+			if v['plfile$format']=="MPEG4":
+				smilurl=v['plfile$url']	
+	
+	smil = XML.ElementFromURL(smilurl)
+	return smil
+
+def PlayVideo(url):
+	smil = GetSMIL(url)
+	video_url = smil.xpath("//a:video[1]/@src", namespaces=NAMESPACES)[0]
+	Log("Gerk: video_url: %s",video_url)
+	return Redirect(video_url)
+
+
+####################################################################################################
+def GetVideoDetails(url):
+	#show_name = url.split('/')[-2]
+	video_id = url.split('/vid:')[1]
+	data = JSON.ObjectFromURL(FEED_URL % show_name)
+	
+	for episode in data['entries']:
+		if episode['guid'] != video_id:
+			continue
+		elif episode['guid'] ==video_id:
+			return episode
+	return
