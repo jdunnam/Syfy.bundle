@@ -77,7 +77,7 @@ def getShowList(show):
 		guids=guids+item['guid']+"|"
 
 	if guids == "":
-		oc = MessageContainer("Ooops!","There appears to be no full episodes available for this show.")
+		oc = MessageContainer("Sorry","There appears to be no full episodes available for this show.")
 		return oc
 		
 		
@@ -92,14 +92,13 @@ def getShowList(show):
 				duration = int(float(item['media$content'][0]['plfile$duration'])*1000)
 				pubdate = Datetime.FromTimestamp(int(item['pubDate']/1000))
 				title=item['title']
-
+				thumbs = SortImages(item['media$thumbnails'])
+				Log("http://www.syfy.com/videos/vid:"+item['guid'])
 				oc.add(
 					EpisodeObject(
-						key = Callback(getVideo,url=v['plfile$url']),
-						rating_key = v['plfile$url'],
-#						url = "http://www.syfy.com/videos/vid:"+item['guid'],
+						url = "http://www.syfy.com/videos/vid:"+item['guid'],
 						title=title,
-						thumb = Resource.ContentsOfURLWithFallback(url=item['media$thumbnails'][0]['plfile$url'], fallback=ICON),
+						thumb = Resource.ContentsOfURLWithFallback(url=thumbs, fallback=ICON),
 						duration = duration,
 						originally_available_at = pubdate
 					)
@@ -110,15 +109,12 @@ def getShowList(show):
 
 
 ####################################################################################################
-def getVideo(url):
-	# NB: There is currently an issue doing a Redirect() with this channel from a URL Service for iOS 
-	# (and possibly other) devices/clients that result in the video not working on them.
-	# There are URL Services wating, once this is sorted out they will be added but for now 
-	# I think it's best to release this channel and hold back the URL services as opposed to limiting iOS access.
-	# -- Gerk , 2012/06/12
+def SortImages(images=[]):
+    
+    sorted_thumbs = sorted(images, key=lambda thumb : int(thumb['plfile$height']), reverse=True)
+    thumb_list = []
+    for thumb in sorted_thumbs:
+        thumb_list.append(thumb['plfile$url'])
 
-	# url is direct url for our SMIL file
-	smil = XML.ElementFromURL(url)
-	video_url = smil.xpath("//a:video[1]/@src", namespaces=NAMESPACES)[0]
-	return Redirect(video_url)
+    return thumb_list
 
