@@ -2,7 +2,7 @@ NAME = 'Syfy'
 ART = 'art-default.jpg'
 ICON = 'icon-default.png'
 
-# gives us basic list of Show/Showname
+# gives us basic list as Show/Showname
 SHOWSLIST="http://feed.theplatform.com/f/hQNl-B/sgM5DlyXAfwt/categories?&form=json&fields=fullTitle,title&q=fullTitle:Shows"
 
 NAMESPACES = {"a":"http://www.w3.org/2005/SMIL21/Language"}
@@ -39,6 +39,7 @@ def MainMenu():
 
 
 
+####################################################################################################
 def getAllShows():
 	oc = ObjectContainer (view_group='List')
 	
@@ -55,8 +56,9 @@ def getAllShows():
 	return oc
 
 
+####################################################################################################
 def getShowList(show):
-	oc = ObjectContainer (view_group='List')
+	oc = ObjectContainer (view_group='InfoList')
 	show = show.replace(' ','+')
  	showurl="http://feed.theplatform.com/f/hQNl-B/2g1gkJT0urp6/?&form=json&fields=guid&fileFields=duration,url,width,height&byCategories="+show+"&byCustomValue=%7BfullEpisode%7D%7Btrue%7D&count=true"
 
@@ -107,7 +109,7 @@ def getShowList(show):
 	return oc
 
 
-
+####################################################################################################
 def getVideo(url):
 	# NB: There is currently an issue doing a Redirect() with this channel from a URL Service for iOS 
 	# (and possibly other) devices/clients that result in the video not working on them.
