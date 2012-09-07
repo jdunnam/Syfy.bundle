@@ -3,7 +3,7 @@ ART = 'art-default.jpg'
 ICON = 'icon-default.png'
 
 # gives us basic list as Show/Showname
-SHOWSLIST = "http://feed.theplatform.com/f/hQNl-B/sgM5DlyXAfwt/categories?&form=json&fields=fullTitle,title&q=fullTitle:Shows"
+SHOWSLIST = "http://feed.theplatform.com/f/hQNl-B/sgM5DlyXAfwt/categories?form=json&fields=fullTitle,title&q=fullTitle:Shows"
 NAMESPACES = {"a":"http://www.w3.org/2005/SMIL21/Language"}
 
 ####################################################################################################
@@ -43,7 +43,7 @@ def GetAllShows():
 
 	for item in data['entries']:
 		oc.add(
-			DirectoryObject(key=Callback(GetShowList,show=item['plcategory$fullTitle']), title=item['title'])
+			DirectoryObject(key=Callback(GetShowList, show=item['plcategory$fullTitle']), title=item['title'])
 		)
 
 	# sort here
@@ -56,10 +56,9 @@ def GetShowList(show):
 
 	oc = ObjectContainer(view_group='InfoList')
 	show = show.replace(' ','+')
- 	showurl = "http://feed.theplatform.com/f/hQNl-B/2g1gkJT0urp6/?&form=json&fields=guid&fileFields=duration,url,width,height&byCategories="+show+"&byCustomValue=%7BfullEpisode%7D%7Btrue%7D&count=true"
-
+	showurl = "http://feed.theplatform.com/f/hQNl-B/2g1gkJT0urp6/?&form=json&fields=guid,title,description,:fullEpisode&fileFields=duration,url,width,height&byCategories="+show+"&byCustomValue={fullEpisode}{true}"
 	guids = ""
-	data=JSON.ObjectFromURL(showurl)
+	data = JSON.ObjectFromURL(showurl)
 
 	for item in data['entries']:
 		guids = guids+item['guid']+"|"
@@ -86,6 +85,7 @@ def GetShowList(show):
 				duration = int(float(item['media$content'][0]['plfile$duration'])*1000)
 				pubdate = Datetime.FromTimestamp(int(item['pubDate']/1000))
 				title = item['title']
+				summary = item['description']
 				thumbs = SortImages(item['media$thumbnails'])
 #				Log("http://www.syfy.com/videos/vid:"+item['guid'])
 
@@ -93,6 +93,7 @@ def GetShowList(show):
 					EpisodeObject(
 						url = "http://www.syfy.com/videos/vid:"+item['guid'],
 						title = title,
+						summary = summary,
 						thumb = Resource.ContentsOfURLWithFallback(url=thumbs, fallback=ICON),
 						duration = duration,
 						originally_available_at = pubdate
